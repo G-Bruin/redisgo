@@ -86,7 +86,7 @@ func Incr(counterKey string) (int, error) {
 func Push(counterKey string, jsonStr []byte) error {
 	conn := Pool.Get()
 	defer conn.Close()
-	_, err := conn.Do("rpush", counterKey, jsonStr)
+	_, err := conn.Do("RPush", counterKey, jsonStr)
 	return err
 }
 
@@ -95,4 +95,14 @@ func Expire(counterKey string, left_time int64) error {
 	defer conn.Close()
 	_, err := conn.Do("EXPIRE", counterKey, left_time)
 	return err
+}
+
+func Limiter(counterKey string, limit int, left_time int64) bool {
+
+	total, _ := Incr(counterKey)
+	if total > limit {
+		return false
+	}
+	_ = Expire(counterKey, left_time)
+	return true
 }
